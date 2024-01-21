@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rezervační systém</title>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-gray-100 h-screen flex items-center justify-center">
+  <div class="bg-white p-8 rounded shadow-md w-96">
+    <h1 class="text-2xl font-bold mb-4">Rezervační systém</h1>
+
+    <div id="loginPage">
+      <label for="businessSelect" class="block text-sm font-medium text-gray-600">Vyberte firmu</label>
+      <select id="businessSelect" class="mt-1 p-2 border rounded w-full"></select>
+      <label for="username" class="block mt-4 text-sm font-medium text-gray-600">Username</label>
+      <input type="text" id="username" class="mt-1 p-2 border rounded w-full" />
+      <label for="password" class="block mt-4 text-sm font-medium text-gray-600">Password</label>
+      <input type="password" id="password" class="mt-1 p-2 border rounded w-full" />
+      <button class="mt-4 bg-blue-500 text-white p-2 rounded w-full" onclick="login()">Login</button>
+    </div>
+
+    <div id="eventPage" class="hidden">
+      <h2 class="text-xl font-bold mb-4">Aktuální události/rezervace</h2>
+      <ul id="eventList" class="list-disc pl-6"></ul>
+
+      <div class="mt-4">
+        <button class="bg-green-500 text-white p-2 rounded" onclick="showAddEventForm()">Přidat událost/rezervaci</button>
+      </div>
+
+      <div id="addEventForm" class="hidden mt-4">
+        <label for="eventDate" class="block text-sm font-medium text-gray-600">Datum</label>
+        <input type="date" id="eventDate" class="mt-1 p-2 border rounded w-full" />
+        <label for="eventTime" class="block mt-4 text-sm font-medium text-gray-600">Čas</label>
+        <input type="time" id="eventTime" class="mt-1 p-2 border rounded w-full" />
+        <label for="eventDescription" class="block mt-4 text-sm font-medium text-gray-600">Popis</label>
+        <textarea id="eventDescription" class="mt-1 p-2 border rounded w-full"></textarea>
+        <div class="mt-4">
+          <button class="bg-blue-500 text-white p-2 rounded" onclick="addEvent()">Přidat událost/rezervaci</button>
+          <button class="ml-2 bg-gray-500 text-white p-2 rounded" onclick="hideAddEventForm()">Zrušit</button>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      let businesses = [
+        { name: "Firma A", users: { "john_doe": "password123", "jane_smith": "password456" }, events: [] },
+        { name: "Firma B", users: { "bob_jones": "password789" }, events: [] },
+      ];
+      function populateBusinessSelect() {
+        const businessSelect = document.getElementById('businessSelect');
+        console.log(localStorage)
+        const parsedJson = JSON.parse(localStorage.getItem('businesses'));
+        if(parsedJson) {
+          businesses = parsedJson;
+          console.log("there is")
+        }
+        businesses.forEach((business, index) => {
+          const option = document.createElement('option');
+          option.value = index;
+          option.textContent = business.name;
+          businessSelect.appendChild(option);
+        });
+      }
+
+      function login() {
+        const businessIndex = document.getElementById('businessSelect').value;
+        const business = businesses[businessIndex];
+
+        const username = document.getElementById('username').value;
+        const password = document.getElementById('password').value;
+
+        if (business.users[username] === password) {
+          document.getElementById('loginPage').style.display = 'none';
+          document.getElementById('eventPage').style.display = 'block';
+          displayEvents(business);
+        } else {
+          alert('Chybné uživatelské jméno nebo heslo.');
+        }
+      }
+
+      function displayEvents(business) {
+        const eventList = document.getElementById('eventList');
+        eventList.innerHTML = "";
+
+        business.events.forEach(event => {
+          const listItem = document.createElement('li');
+          listItem.textContent = `${event.date} ${event.time}: ${event.description}`;
+          eventList.appendChild(listItem);
+        });
+      }
+
+      function showAddEventForm() {
+        document.getElementById('addEventForm').style.display = 'block';
+      }
+
+      function hideAddEventForm() {
+        document.getElementById('addEventForm').style.display = 'none';
+      }
+
+      function addEvent() {
+        const businessIndex = document.getElementById('businessSelect').value;
+        const business = businesses[businessIndex];
+
+        const eventDate = document.getElementById('eventDate').value;
+        const eventTime = document.getElementById('eventTime').value;
+        const eventDescription = document.getElementById('eventDescription').value;
+
+        if (eventDate && eventTime && eventDescription) {
+          business.events.push({ date: eventDate, time: eventTime, description: eventDescription });
+          displayEvents(business);
+          hideAddEventForm();
+          localStorage.setItem('businesses', JSON.stringify(businesses));
+        } else {
+          alert('Vyplňte prosím všechny údaje události.');
+        }
+      }
+
+      populateBusinessSelect();
+    </script>
+  </div>
+</body>
+</html>
